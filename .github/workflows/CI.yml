@@ -1,0 +1,33 @@
+name: CI
+
+# Runs on both next (unreleased) and main (released)
+# next → snapshot build, no release
+# main → triggers auto-tag which triggers goreleaser
+
+on:
+  push:
+    branches: [main, next]
+  pull_request:
+    branches: [main, next]
+
+jobs:
+  lint:
+    uses: EmilVorre/reuseable-workflows/.github/workflows/go-lint.yml@v1
+    with:
+      version: v2.12.2
+      working-directory: ${{ inputs.working-directory }}
+      go-version: "1.26.2"
+
+  build:
+    uses: EmilVorre/reuseable-workflows/.github/workflows/go-build.yml@v1
+    needs: lint
+    with:
+      go-version: "1.26.2"
+      build-flags: "-v"
+
+  test:
+    uses: EmilVorre/reuseable-workflows/.github/workflows/go-test.yml@v1
+    needs: build
+    with:
+      go-version: "1.26.2"
+      enable-race-detection: true
