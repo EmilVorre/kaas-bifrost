@@ -14,6 +14,8 @@ jobs:
   lint:
     uses: EmilVorre/reuseable-workflows/.github/workflows/go-lint.yml@v1
     with:
+      version: v2.12.2
+      working-directory: ${{ inputs.working-directory }}
       go-version: "1.26.2"
 
   build:
