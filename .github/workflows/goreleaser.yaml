@@ -1,0 +1,96 @@
+version: 2
+
+project_name: bifrost
+
+before:
+  hooks:
+    - go mod tidy
+    - go generate ./...
+
+builds:
+  - id: bifrost
+    main: ./cmd/bifrost/
+    binary: bifrost
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: windows
+        goarch: arm64
+    ldflags:
+      - -s -w
+      - -X github.com/EmilVorre/bifrost/internal/version.Version={{.Version}}
+      - -X github.com/EmilVorre/bifrost/internal/version.Commit={{.Commit}}
+      - -X github.com/EmilVorre/bifrost/internal/version.Date={{.Date}}
+
+archives:
+  - id: bifrost
+    name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
+    format_overrides:
+      - goos: windows
+        format: zip
+    files:
+      - README.md
+      - LICENSE
+
+checksum:
+  name_template: "checksums.txt"
+  algorithm: sha256
+
+snapshot:
+  # Used when goreleaser runs on next branch without a tag
+  version_template: "{{ .Version }}-next-{{.ShortCommit}}"
+
+changelog:
+  sort: asc
+  use: github
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^chore:"
+      - "^ci:"
+      - Merge pull request
+      - Merge branch
+  groups:
+    - title: "🚀 Features"
+      regexp: "^feat"
+      order: 0
+    - title: "🐛 Bug Fixes"
+      regexp: "^fix"
+      order: 1
+    - title: "⚡ Performance"
+      regexp: "^perf"
+      order: 2
+    - title: "🔒 Security"
+      regexp: "^sec"
+      order: 3
+    - title: "Other"
+      order: 999
+
+release:
+  github:
+    owner: EmilVorre
+    name: kaas-bifrost
+  name_template: "KaaS Bifrost {{.Tag}}"
+  draft: false
+  prerelease: auto
+  footer: |
+    ## Installation
+
+    **Linux/macOS (amd64):**
+    ```bash
+    curl -sSL https://github.com/EmilVorre/kaas-bifrost/releases/download/{{.Tag}}/bifrost_linux_amd64.tar.gz | tar -xz
+    sudo mv bifrost /usr/local/bin/
+    ```
+
+    **Verify checksum:**
+    ```bash
+    sha256sum --check checksums.txt
+    ```
