@@ -59,6 +59,10 @@ func init() {
 	initCmd.Flags().StringVar(&sshUser, "ssh-user", "ubuntu", "SSH user for node access")
 	initCmd.Flags().StringVar(&sshKeyPath, "ssh-key", "~/.ssh/id_ed25519", "Path to SSH private key")
  
-	initCmd.MarkFlagRequired("control-plane")
-	initCmd.MarkFlagRequired("workers")
+	if err := initCmd.MarkFlagRequired("control-plane"); err != nil {
+		panic("failed to mark flag required: " + err.Error())
+	}
+	if err := initCmd.MarkFlagRequired("workers"); err != nil {
+		panic("failed to mark flag required: " + err.Error())
+	}
 }

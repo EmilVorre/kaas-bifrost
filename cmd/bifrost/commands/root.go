@@ -33,7 +33,9 @@ func Execute() {
 	if err != nil {
 		panic("failed to initialise logger: " + err.Error())
 	}
-	defer logger.Sync()
+	defer func() {
+		_ = logger.Sync()
+	}()
 
 	if err := rootCmd.Execute(); err != nil {
 		os.Exit(1)
