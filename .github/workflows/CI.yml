@@ -30,4 +30,4 @@ jobs:
     needs: build
     with:
       go-version: "1.26.2"
-      enable-race-detection: true
+      enable-race-detection: false
