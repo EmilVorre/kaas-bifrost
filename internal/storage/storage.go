@@ -24,7 +24,8 @@ func (m *Manager) LonghornHealth() ([]LonghornNodeStatus, error) {
 // ProvisionTenantBucket creates a MinIO bucket for a tenant and stores
 // credentials in OpenBao
 // TODO: Use MinIO Go SDK to create bucket, store creds at
-//       secret/customers/<name>/minio in OpenBao
+//
+//	secret/customers/<name>/minio in OpenBao
 func (m *Manager) ProvisionTenantBucket(name string) error {
 	return nil
 }

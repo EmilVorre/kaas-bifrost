@@ -128,7 +128,7 @@ func (c *Client) Run(ctx context.Context, command string) (RunResult, error) {
 	if err != nil {
 		return RunResult{}, fmt.Errorf("new session: %w", err)
 	}
-	defer sess.Close()
+	defer func() { _ = sess.Close() }()
 
 	done := make(chan error, 1)
 	var stdout, stderr bytes.Buffer

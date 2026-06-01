@@ -10,9 +10,9 @@ import (
 var logger *zap.Logger
 
 var rootCmd = &cobra.Command{
-	Use: 	"bifrost",
-	Short: 	"KaaS Bifrost - Kubernetes multi-tenancy platform CLI",
-	Long:	`
+	Use:   "bifrost",
+	Short: "KaaS Bifrost - Kubernetes multi-tenancy platform CLI",
+	Long: `
 ██████╗ ██╗███████╗██████╗  ██████╗ ███████╗████████╗
 ██╔══██╗██║██╔════╝██╔══██╗██╔═══██╗██╔════╝╚══██╔══╝
 ██████╔╝██║█████╗  ██████╔╝██║   ██║███████╗   ██║
@@ -25,7 +25,7 @@ Manage cluster provisioning, tenant isolation, secrets, and observability.`,
 	SilenceUsage: true,
 }
 
-//Execute is the entry point called from main.go
+// Execute is the entry point called from main.go
 func Execute() {
 	var err error
 
