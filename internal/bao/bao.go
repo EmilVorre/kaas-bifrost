@@ -28,8 +28,9 @@ func New(address, token string) (*Client, error) {
 
 // ProvisionTenant creates an isolated secret path, policy, and
 // Kuberetes quth role scoped to the given tenant
-// TODO: Write secret path secret/customers/<name>/, 
-// 		 write policy, create k8s auth role bound to tenant namespace SA
+// TODO: Write secret path secret/customers/<name>/,
+//
+//	write policy, create k8s auth role bound to tenant namespace SA
 func (c *Client) ProvisionTenant(name, namespace string) error {
 	return nil
 }

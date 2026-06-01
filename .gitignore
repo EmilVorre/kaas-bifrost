@@ -24,6 +24,9 @@ profile.cov
 go.work
 go.work.sum
 
+# make lint installs golangci-lint here
+.tools/
+
 # env file
 .env
 

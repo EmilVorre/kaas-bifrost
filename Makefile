@@ -3,7 +3,9 @@ CMD_PATH    := ./cmd/bifrost
 BUILD_DIR   := ./bin
 
 GO      := go
-GOLINT  := golangci-lint
+GOLANGCI_LINT_VERSION ?= v2.12.2
+TOOLS_DIR := $(CURDIR)/.tools
+GOLINT    := $(TOOLS_DIR)/golangci-lint
 
 .PHONY: all build run clean lint test test-verbose tidy help
 
@@ -27,11 +29,15 @@ clean:
 	@rm -rf $(BUILD_DIR)
 	@echo "✓ Clean"
 
-## lint: run golangci-lint across the project
-lint:
+## lint: run golangci-lint across the project (installs to .tools/ if missing)
+lint: $(GOLINT)
 	@echo "→ Running linter..."
 	$(GOLINT) run ./...
 	@echo "✓ Lint passed"
+
+$(GOLINT):
+	@mkdir -p $(TOOLS_DIR)
+	GOBIN=$(TOOLS_DIR) $(GO) install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$(GOLANGCI_LINT_VERSION)
 
 ## test: run all tests
 test:
@@ -49,6 +55,10 @@ test-coverage:
 	$(GO) test ./... -coverprofile=coverage.out -count=1
 	$(GO) tool cover -html=coverage.out -o coverage.html
 	@echo "✓ Coverage report written to coverage.html"
+
+## fmt: format Go source
+fmt:
+	@gofmt -w .
 
 ## tidy: tidy and verify go modules
 tidy:

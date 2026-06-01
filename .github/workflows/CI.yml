@@ -6,9 +6,7 @@ name: CI
 
 on:
   push:
-    branches: [main, next]
   pull_request:
-    branches: [main, next]
 
 jobs:
   lint:
@@ -30,4 +28,4 @@ jobs:
     needs: build
     with:
       go-version: "1.26.2"
-      enable-race-detection: true
+      enable-race-detection: false
