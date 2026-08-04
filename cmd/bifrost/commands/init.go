@@ -31,7 +31,7 @@ Example:
 	RunE: func(cmd *cobra.Command, args []string) error {
 		logger.Info("Starting KaaS Bifrost cluster initialisation")
 
-		cfg := provisioner.ClusterConfigFromFlags(controlPlaneIP, workerIPs, sshUser, sshKeyPath)
+		cfg := provisioner.ClusterConfigFromFlags(controlPlaneIP, workerIPs, sshUser, sshKeyPath, kubeconfigPath)
 		prov := provisioner.New(cfg)
 		ctx := cmd.Context()
 

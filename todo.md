@@ -39,12 +39,12 @@ bifrost/
 - [ ] Set up internal package structure
 - [ ] Write Makefile (build, lint, test targets)
 ### Provisioner (kubeadm + SSH)
-- [ ] SSH client wrapper in Go (`golang.org/x/crypto/ssh`)
-- [ ] `bifrost init` — SSH into control plane node, run `kubeadm init`
-- [ ] `bifrost init` — SSH into worker nodes, run `kubeadm join`
-- [ ] Pull kubeconfig back to local machine after init
-- [ ] Store kubeconfig securely for subsequent `client-go` calls
-- [ ] Handle node drain and reset (`bifrost node remove`)
+- [x] SSH client wrapper in Go (`golang.org/x/crypto/ssh`)
+- [x] `bifrost init` — SSH into control plane node, run `kubeadm init`
+- [x] `bifrost init` — SSH into worker nodes, run `kubeadm join`
+- [x] Pull kubeconfig back to local machine after init
+- [x] Store kubeconfig securely for subsequent `client-go` calls
+- [x] Handle node drain and reset (`bifrost node remove`)
 ### Cilium + Hubble
 - [ ] Deploy Cilium via Helm after kubeadm init
 - [ ] Enable Hubble relay + UI

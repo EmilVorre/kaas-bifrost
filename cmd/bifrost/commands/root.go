@@ -8,6 +8,7 @@ import (
 )
 
 var logger *zap.Logger
+var kubeconfigPath string
 
 var rootCmd = &cobra.Command{
 	Use:   "bifrost",
@@ -43,7 +44,9 @@ func Execute() {
 }
 
 func init() {
+	rootCmd.PersistentFlags().StringVar(&kubeconfigPath, "kubeconfig", "~/.bifrost/kubeconfig", "Path to the kubeconfig file for cluster access")
 	rootCmd.AddCommand(initCmd)
 	rootCmd.AddCommand(tenantCmd)
 	rootCmd.AddCommand(statusCmd)
+	rootCmd.AddCommand(nodeCmd)
 }
