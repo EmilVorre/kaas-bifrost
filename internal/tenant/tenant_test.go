@@ -87,7 +87,7 @@ spec:
 	// 1. Initialize fake client-go and dynamic client
 	clientset := fake.NewSimpleClientset()
 	scheme := runtime.NewScheme()
-	
+
 	gvrToListKind := map[schema.GroupVersionResource]string{
 		{
 			Group:    "cilium.io",
