@@ -6,9 +6,12 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 
+	"github.com/EmilVorre/Bifrost/internal/k8sclient"
 	"github.com/EmilVorre/Bifrost/internal/sshclient"
 )
 
@@ -182,9 +185,66 @@ func (p *Provisioner) JoinWorkers(ctx context.Context) error {
 	return nil
 }
 
-// InstallCilium deploys Cilium CNI and Hubble via helm.
-// TODO: Apply Cilium helm chart to the bootstrapped cluster.
-func (p *Provisioner) InstallCilium() error {
+// InstallCilium deploys Cilium CNI and Hubble via helm and verifies health.
+func (p *Provisioner) InstallCilium(ctx context.Context) error {
+	helmPath, err := exec.LookPath("helm")
+	if err != nil {
+		return fmt.Errorf("helm binary not found in PATH: %w", err)
+	}
+
+	// 1. Add Cilium Helm Repo
+	cmdAdd := exec.CommandContext(ctx, helmPath, "repo", "add", "cilium", "https://helm.cilium.io/")
+	if output, err := cmdAdd.CombinedOutput(); err != nil {
+		return fmt.Errorf("add cilium helm repo: %w, output: %s", err, string(output))
+	}
+
+	// 2. Repo Update
+	cmdUpdate := exec.CommandContext(ctx, helmPath, "repo", "update")
+	if output, err := cmdUpdate.CombinedOutput(); err != nil {
+		return fmt.Errorf("update helm repos: %w, output: %s", err, string(output))
+	}
+
+	// 3. Expand local kubeconfig path
+	expandedKubeconfigPath, err := expandPath(p.cfg.KubeconfigPath)
+	if err != nil {
+		return fmt.Errorf("expand local kubeconfig path: %w", err)
+	}
+
+	// 4. Install Cilium
+	args := []string{
+		"upgrade", "--install", "cilium", "cilium/cilium",
+		"--namespace", "kube-system",
+		"--set", "hubble.enabled=true",
+		"--set", "hubble.relay.enabled=true",
+		"--set", "hubble.ui.enabled=true",
+		"--kubeconfig", expandedKubeconfigPath,
+	}
+	cmdInstall := exec.CommandContext(ctx, helmPath, args...)
+	if output, err := cmdInstall.CombinedOutput(); err != nil {
+		return fmt.Errorf("install cilium helm chart: %w, output: %s", err, string(output))
+	}
+
+	// 5. Verify CNI health using k8sclient
+	k8s, err := k8sclient.New(expandedKubeconfigPath)
+	if err != nil {
+		return fmt.Errorf("initialize kubernetes client: %w", err)
+	}
+
+	fmt.Println("  Waiting for Cilium DaemonSet to be ready...")
+	if err := k8s.WaitForDaemonSetReady(ctx, "kube-system", "cilium", 5*time.Minute); err != nil {
+		return fmt.Errorf("cilium daemonset health check: %w", err)
+	}
+
+	fmt.Println("  Waiting for Hubble Relay to be ready...")
+	if err := k8s.WaitForDeploymentReady(ctx, "kube-system", "hubble-relay", 5*time.Minute); err != nil {
+		return fmt.Errorf("hubble relay deployment health check: %w", err)
+	}
+
+	fmt.Println("  Waiting for Hubble UI to be ready...")
+	if err := k8s.WaitForDeploymentReady(ctx, "kube-system", "hubble-ui", 5*time.Minute); err != nil {
+		return fmt.Errorf("hubble ui deployment health check: %w", err)
+	}
+
 	return nil
 }
 

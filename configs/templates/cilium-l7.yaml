@@ -1,0 +1,21 @@
+apiVersion: "cilium.io/v2"
+kind: CiliumNetworkPolicy
+metadata:
+  name: tenant-l7-rules
+  namespace: {{ .Namespace }}
+spec:
+  endpointSelector:
+    matchLabels:
+      app: app-with-l7-rules
+  egress:
+  - toEndpoints:
+    - matchLabels:
+        app: external-service
+    toPorts:
+    - ports:
+      - port: "80"
+        protocol: TCP
+      rules:
+        http:
+        - method: "GET"
+          path: "/api/v1/.*"
