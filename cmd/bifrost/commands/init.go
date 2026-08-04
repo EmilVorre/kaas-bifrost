@@ -51,7 +51,7 @@ Example:
 		}
 
 		fmt.Println("→ Installing Cilium CNI + Hubble...")
-		if err := prov.InstallCilium(); err != nil {
+		if err := prov.InstallCilium(ctx); err != nil {
 			return fmt.Errorf("install cilium: %w", err)
 		}
 

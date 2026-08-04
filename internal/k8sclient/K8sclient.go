@@ -13,13 +13,15 @@ import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 )
 
 // Client warps the kubernetes clientset
 type Client struct {
-	Clientset kubernetes.Interface
+	Clientset     kubernetes.Interface
+	DynamicClient dynamic.Interface
 }
 
 // New creates a new Client from the kubeconfig path
@@ -39,7 +41,15 @@ func New(kubeconfigPath string) (*Client, error) {
 		return nil, err
 	}
 
-	return &Client{Clientset: clientset}, nil
+	dynamicClient, err := dynamic.NewForConfig(config)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Client{
+		Clientset:     clientset,
+		DynamicClient: dynamicClient,
+	}, nil
 }
 
 // FindNodeNameByIP finds the node name by matching the internal IP address.
@@ -170,4 +180,54 @@ func expandPath(path string) (string, error) {
 		return home, nil
 	}
 	return filepath.Join(home, path[2:]), nil
+}
+
+// WaitForDaemonSetReady polls a DaemonSet until all scheduled pods are ready.
+func (c *Client) WaitForDaemonSetReady(ctx context.Context, namespace, name string, timeout time.Duration) error {
+	ticker := time.NewTicker(2 * time.Second)
+	defer ticker.Stop()
+
+	timeoutCtx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+
+	for {
+		select {
+		case <-timeoutCtx.Done():
+			return fmt.Errorf("timeout waiting for daemonset %s/%s to be ready", namespace, name)
+		case <-ticker.C:
+			ds, err := c.Clientset.AppsV1().DaemonSets(namespace).Get(ctx, name, metav1.GetOptions{})
+			if err != nil {
+				return err
+			}
+
+			if ds.Status.DesiredNumberScheduled > 0 && ds.Status.NumberReady == ds.Status.DesiredNumberScheduled {
+				return nil
+			}
+		}
+	}
+}
+
+// WaitForDeploymentReady polls a Deployment until all replicas are ready.
+func (c *Client) WaitForDeploymentReady(ctx context.Context, namespace, name string, timeout time.Duration) error {
+	ticker := time.NewTicker(2 * time.Second)
+	defer ticker.Stop()
+
+	timeoutCtx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+
+	for {
+		select {
+		case <-timeoutCtx.Done():
+			return fmt.Errorf("timeout waiting for deployment %s/%s to be ready", namespace, name)
+		case <-ticker.C:
+			deploy, err := c.Clientset.AppsV1().Deployments(namespace).Get(ctx, name, metav1.GetOptions{})
+			if err != nil {
+				return err
+			}
+
+			if deploy.Status.Replicas > 0 && deploy.Status.ReadyReplicas == deploy.Status.Replicas {
+				return nil
+			}
+		}
+	}
 }

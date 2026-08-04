@@ -46,13 +46,13 @@ bifrost/
 - [x] Store kubeconfig securely for subsequent `client-go` calls
 - [x] Handle node drain and reset (`bifrost node remove`)
 ### Cilium + Hubble
-- [ ] Deploy Cilium via Helm after kubeadm init
-- [ ] Enable Hubble relay + UI
-- [ ] Verify CNI is healthy before proceeding
-- [ ] Write default-deny `NetworkPolicy` template
-- [ ] Write per-tenant allow rules template (intra-namespace, DNS, OpenBao egress)
-- [ ] Write `CiliumNetworkPolicy` template for L7 rules
-- [ ] Apply network policies via `client-go` on tenant creation
+- [x] Deploy Cilium via Helm after kubeadm init
+- [x] Enable Hubble relay + UI
+- [x] Verify CNI is healthy before proceeding
+- [x] Write default-deny `NetworkPolicy` template
+- [x] Write per-tenant allow rules template (intra-namespace, DNS, OpenBao egress)
+- [x] Write `CiliumNetworkPolicy` template for L7 rules
+- [x] Apply network policies via `client-go` on tenant creation
 ### OpenBao
 - [ ] Deploy OpenBao into `kaas-system` namespace via Helm
 - [ ] Set up dedicated root OpenBao instance for transit auto-unseal

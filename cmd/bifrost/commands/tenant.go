@@ -3,6 +3,8 @@ package commands
 import (
 	"fmt"
 
+	"github.com/EmilVorre/Bifrost/internal/k8sclient"
+	"github.com/EmilVorre/Bifrost/internal/tenant"
 	"github.com/spf13/cobra"
 )
 
@@ -35,13 +37,21 @@ Example:
 	Args: cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		tenantName = args[0]
+		ctx := cmd.Context()
 		logger.Info("Provisioning tenant")
 
-		fmt.Printf("→ Creating namespace tenant-%s...\n", tenantName)
-		// TODO: internal/tenant — create namespace, RBAC, ResourceQuota, LimitRange
+		fmt.Printf("→ Connecting to cluster via kubeconfig at %s...\n", kubeconfigPath)
+		k8s, err := k8sclient.New(kubeconfigPath)
+		if err != nil {
+			return fmt.Errorf("init kubernetes client: %w", err)
+		}
+		mgr := tenant.NewManager(k8s)
 
-		fmt.Printf("→ Applying network policies for tenant-%s...\n", tenantName)
-		// TODO: internal/tenant — apply default-deny + allow rules via Cilium
+		fmt.Printf("→ Creating namespace tenant-%s with quota %s...\n", tenantName, tenantQuota)
+		_, err = mgr.Add(ctx, tenantName, tenant.QuotaTier(tenantQuota))
+		if err != nil {
+			return fmt.Errorf("failed to provision tenant %s: %w", tenantName, err)
+		}
 
 		fmt.Printf("→ Provisioning OpenBao path and policy for %s...\n", tenantName)
 		// TODO: internal/bao — create secret path, policy, K8s auth role
@@ -72,10 +82,20 @@ Example:
 	Args: cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		tenantName = args[0]
+		ctx := cmd.Context()
 		logger.Info("Removing tenant")
 
+		fmt.Printf("→ Connecting to cluster via kubeconfig at %s...\n", kubeconfigPath)
+		k8s, err := k8sclient.New(kubeconfigPath)
+		if err != nil {
+			return fmt.Errorf("init kubernetes client: %w", err)
+		}
+		mgr := tenant.NewManager(k8s)
+
 		fmt.Printf("→ Deleting namespace tenant-%s...\n", tenantName)
-		// TODO: internal/tenant — delete namespace (cascades K8s resources)
+		if err := mgr.Remove(ctx, tenantName); err != nil {
+			return fmt.Errorf("failed to remove tenant %s: %w", tenantName, err)
+		}
 
 		fmt.Printf("→ Removing OpenBao path and policy for %s...\n", tenantName)
 		// TODO: internal/bao — delete secret path, policy, auth role
@@ -98,11 +118,26 @@ var tenantListCmd = &cobra.Command{
 	Long: `Lists all tenants currently provisioned on the cluster,
 along with their resource quota usage and health status.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		ctx := cmd.Context()
 		logger.Info("Listing tenants")
 
-		fmt.Println("NAME\t\tSTATUS\t\tCPU\t\tMEMORY\t\tPODS")
-		fmt.Println("----\t\t------\t\t---\t\t------\t\t----")
-		// TODO: internal/tenant — list namespaces with tenant label, fetch quota usage
+		fmt.Printf("→ Connecting to cluster via kubeconfig at %s...\n", kubeconfigPath)
+		k8s, err := k8sclient.New(kubeconfigPath)
+		if err != nil {
+			return fmt.Errorf("init kubernetes client: %w", err)
+		}
+		mgr := tenant.NewManager(k8s)
+
+		tenants, err := mgr.List(ctx)
+		if err != nil {
+			return fmt.Errorf("failed to list tenants: %w", err)
+		}
+
+		fmt.Println("NAME\t\tNAMESPACE\t\tQUOTA")
+		fmt.Println("----\t\t---------\t\t-----")
+		for _, t := range tenants {
+			fmt.Printf("%s\t\t%s\t\t%s\n", t.Name, t.Namespace, t.Quota)
+		}
 
 		return nil
 	},
