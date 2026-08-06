@@ -33,11 +33,11 @@ bifrost/
 ## Phase 1 — Core Infrastructure 🔴
  
 ### Go Project Scaffold
-- [ ] Initialise Go module (`github.com/<handle>/bifrost`)
-- [ ] Set up Cobra CLI with root command
-- [ ] Add `bifrost init`, `bifrost tenant`, `bifrost status` command stubs
-- [ ] Set up internal package structure
-- [ ] Write Makefile (build, lint, test targets)
+- [x] Initialise Go module (`github.com/<handle>/bifrost`)
+- [x] Set up Cobra CLI with root command
+- [x] Add `bifrost init`, `bifrost tenant`, `bifrost status` command stubs
+- [x] Set up internal package structure
+- [x] Write Makefile (build, lint, test targets)
 ### Provisioner (kubeadm + SSH)
 - [x] SSH client wrapper in Go (`golang.org/x/crypto/ssh`)
 - [x] `bifrost init` — SSH into control plane node, run `kubeadm init`
@@ -54,16 +54,16 @@ bifrost/
 - [x] Write `CiliumNetworkPolicy` template for L7 rules
 - [x] Apply network policies via `client-go` on tenant creation
 ### OpenBao
-- [ ] Deploy OpenBao into `kaas-system` namespace via Helm
-- [ ] Set up dedicated root OpenBao instance for transit auto-unseal
-- [ ] Configure transit secret engine on root Bao
-- [ ] Configure cluster Bao to auto-unseal via root Bao transit key
-- [ ] Enable Kubernetes auth method on cluster Bao
-- [ ] Write Go package wrapping OpenBao SDK (`internal/bao`)
-- [ ] `bifrost init` provisions Bao on first run
-- [ ] Per-tenant secret path (`secret/customers/<name>/`)
-- [ ] Per-tenant Bao policy (scoped to their path only)
-- [ ] Per-tenant Kubernetes auth role (scoped to tenant namespace SA)
+- [x] Deploy OpenBao into `kaas-system` namespace via Helm
+- [x] Set up dedicated root OpenBao instance for transit auto-unseal
+- [x] Configure transit secret engine on root Bao
+- [x] Configure cluster Bao to auto-unseal via root Bao transit key
+- [x] Enable Kubernetes auth method on cluster Bao
+- [x] Write Go package wrapping OpenBao SDK (`internal/bao`)
+- [x] `bifrost init` provisions Bao on first run
+- [x] Per-tenant secret path (`secret/customers/<name>/`)
+- [x] Per-tenant Bao policy (scoped to their path only)
+- [x] Per-tenant Kubernetes auth role (scoped to tenant namespace SA)
 ### Longhorn
 - [ ] Deploy Longhorn into `kaas-storage` namespace via Helm
 - [ ] Set as default StorageClass
