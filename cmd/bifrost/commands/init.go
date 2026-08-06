@@ -3,6 +3,7 @@ package commands
 import (
 	"fmt"
 
+	"github.com/EmilVorre/Bifrost/internal/bao"
 	"github.com/EmilVorre/Bifrost/internal/provisioner"
 	"github.com/spf13/cobra"
 )
@@ -56,7 +57,9 @@ Example:
 		}
 
 		fmt.Println("→ Deploying OpenBao with transit auto-unseal...")
-		// TODO: internal/bao — OpenBao Helm deploy + init + unseal config
+		if err := bao.DeployAndConfigure(ctx, kubeconfigPath); err != nil {
+			return fmt.Errorf("deploy and configure openbao: %w", err)
+		}
 
 		fmt.Println("→ Deploying Longhorn storage...")
 		// TODO: internal/storage — Longhorn Helm deploy
