@@ -15,6 +15,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 )
 
@@ -22,6 +23,7 @@ import (
 type Client struct {
 	Clientset     kubernetes.Interface
 	DynamicClient dynamic.Interface
+	RestConfig    *rest.Config
 }
 
 // New creates a new Client from the kubeconfig path
@@ -49,6 +51,7 @@ func New(kubeconfigPath string) (*Client, error) {
 	return &Client{
 		Clientset:     clientset,
 		DynamicClient: dynamicClient,
+		RestConfig:    config,
 	}, nil
 }
 
@@ -227,6 +230,36 @@ func (c *Client) WaitForDeploymentReady(ctx context.Context, namespace, name str
 
 			if deploy.Status.Replicas > 0 && deploy.Status.ReadyReplicas == deploy.Status.Replicas {
 				return nil
+			}
+		}
+	}
+}
+
+// WaitForPodReady polls a Pod until it is in Running phase and ready.
+func (c *Client) WaitForPodReady(ctx context.Context, namespace, name string, timeout time.Duration) error {
+	ticker := time.NewTicker(2 * time.Second)
+	defer ticker.Stop()
+
+	timeoutCtx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+
+	for {
+		select {
+		case <-timeoutCtx.Done():
+			return fmt.Errorf("timeout waiting for pod %s/%s to be ready", namespace, name)
+		case <-ticker.C:
+			pod, err := c.Clientset.CoreV1().Pods(namespace).Get(ctx, name, metav1.GetOptions{})
+			if err != nil {
+				// Pod might not be created yet, ignore error and retry
+				continue
+			}
+
+			if pod.Status.Phase == v1.PodRunning {
+				for _, cond := range pod.Status.Conditions {
+					if cond.Type == v1.PodReady && cond.Status == v1.ConditionTrue {
+						return nil
+					}
+				}
 			}
 		}
 	}
